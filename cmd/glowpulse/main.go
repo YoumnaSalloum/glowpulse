@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/YoumnaSalloum/glowpulse/internal/checker"
 )
@@ -17,9 +18,32 @@ func main() {
 	result := checker.Check(url)
 
 	if result.Err != nil {
-		fmt.Printf("❌ %s is DOWN: %v\n", result.URL, result.Err)
+		fmt.Printf("%s %s %s: %v\n", icon(result.Status), result.Status, result.URL, result.Err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("✅ %s → %d in %v\n", result.URL, result.StatusCode, result.Duration)
+	fmt.Printf("%s %s %s → %d in %v\n",
+		icon(result.Status), result.Status, result.URL, result.StatusCode, result.Duration)
+
+	if !result.CertExpires.IsZero() {
+		daysLeft := int(time.Until(result.CertExpires).Hours() / 24)
+		fmt.Printf("🔒 TLS certificate expires in %d days (%s)\n",
+			daysLeft, result.CertExpires.Format("2006-01-02"))
+	}
+
+	if result.Status != checker.StatusUp {
+		os.Exit(1)
+	}
+}
+
+// icon returns an emoji for each health status.
+func icon(s checker.Status) string {
+	switch s {
+	case checker.StatusUp:
+		return "✅"
+	case checker.StatusDegraded:
+		return "⚠️"
+	default:
+		return "❌"
+	}
 }
