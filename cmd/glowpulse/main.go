@@ -34,6 +34,15 @@ func main() {
 	if result.Status != checker.StatusUp {
 		os.Exit(1)
 	}
+
+		if len(result.MissingHeaders) == 0 {
+		fmt.Println("🛡️  All security headers present")
+	} else {
+		fmt.Printf("🛡️  Missing %d security headers:\n", len(result.MissingHeaders))
+		for _, h := range result.MissingHeaders {
+			fmt.Println("   -", h)
+		}
+	}
 }
 
 // icon returns an emoji for each health status.
