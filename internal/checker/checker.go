@@ -40,10 +40,10 @@ func Check(url string) Result {
 	defer resp.Body.Close()
 
 	result := Result{
-		URL:        url,
-		Status:     statusFromCode(resp.StatusCode),
-		StatusCode: resp.StatusCode,
-		Duration:   duration,
+		URL:            url,
+		Status:         statusFromCode(resp.StatusCode),
+		StatusCode:     resp.StatusCode,
+		Duration:       duration,
 		MissingHeaders: missingHeaders(resp.Header),
 	}
 
