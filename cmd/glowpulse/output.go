@@ -46,7 +46,8 @@ type jsonResult struct {
 }
 
 // printJSON prints the result as indented JSON.
-func printJSON(r checker.Result) error {
+// toJSON converts one result into its JSON shape.
+func toJSON(r checker.Result) jsonResult {
 	out := jsonResult{
 		URL:            r.URL,
 		Status:         string(r.Status),
@@ -59,6 +60,15 @@ func printJSON(r checker.Result) error {
 	}
 	if r.Err != nil {
 		out.Error = r.Err.Error()
+	}
+	return out
+}
+
+// printJSON prints all results as an indented JSON array.
+func printJSON(results []checker.Result) error {
+	out := make([]jsonResult, 0, len(results))
+	for _, r := range results {
+		out = append(out, toJSON(r))
 	}
 
 	data, err := json.MarshalIndent(out, "", "  ")
@@ -79,4 +89,16 @@ func icon(s checker.Status) string {
 	default:
 		return "❌"
 	}
+}
+
+// printSummary prints one line with totals and timing.
+func printSummary(results []checker.Result, elapsed time.Duration, workers int) {
+	up := 0
+	for _, r := range results {
+		if r.Status == checker.StatusUp {
+			up++
+		}
+	}
+	fmt.Printf("📊 Checked %d sites in %v using %d workers: %d up, %d not up\n",
+		len(results), elapsed.Round(time.Millisecond), workers, up, len(results)-up)
 }
