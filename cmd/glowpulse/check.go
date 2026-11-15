@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -14,15 +15,31 @@ import (
 var (
 	jsonOutput bool
 	workers    int
+	filePath   string
 )
 
 var checkCmd = &cobra.Command{
-	Use:   "check <url> [url...]",
+	Use:   "check [url...]",
 	Short: "Check the health of one or more websites",
-	Args:  cobra.MinimumNArgs(1),
+	Example: `  glowpulse check https://google.com
+  glowpulse check -w 20 https://google.com https://github.com
+  glowpulse check -f examples/urls.txt --json`,
+	Args: cobra.ArbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		urls := args
+		if filePath != "" {
+			fromFile, err := readURLs(filePath)
+			if err != nil {
+				return err
+			}
+			urls = append(urls, fromFile...)
+		}
+		if len(urls) == 0 {
+			return errors.New("no URLs given: pass them as arguments or use --file")
+		}
+
 		start := time.Now()
-		results := pool.Run(args, workers)
+		results := pool.Run(urls, workers)
 		elapsed := time.Since(start)
 
 		if jsonOutput {
@@ -49,5 +66,6 @@ var checkCmd = &cobra.Command{
 func init() {
 	checkCmd.Flags().BoolVar(&jsonOutput, "json", false, "print the results as JSON")
 	checkCmd.Flags().IntVarP(&workers, "workers", "w", 10, "how many sites to check at the same time")
+	checkCmd.Flags().StringVarP(&filePath, "file", "f", "", "read URLs from a file, one per line")
 	rootCmd.AddCommand(checkCmd)
 }
