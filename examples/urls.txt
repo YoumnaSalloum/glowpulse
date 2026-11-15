@@ -1,0 +1,14 @@
+# Popular websites
+https://google.com
+https://github.com
+https://youtube.com
+https://wikipedia.org
+https://cloudflare.com
+https://stackoverflow.com
+https://reddit.com
+https://amazon.com
+
+# Test cases
+https://github.com/this-page-does-not-exist
+https://expired.badssl.com
+http://neverssl.com
