@@ -1,9 +1,13 @@
 package checker
 
 import (
+	"context"
 	"net/http"
 	"time"
 )
+
+// client is shared by every check so connections can be reused.
+var client = &http.Client{}
 
 // Status represents the status of a URL check.
 type Status string
@@ -26,12 +30,19 @@ type Result struct {
 }
 
 // Check visits the given URL and returns its health, status code,
-// response time and TLS certificate expiry date.
-func Check(url string) Result {
-	client := &http.Client{Timeout: 10 * time.Second}
+// response time, TLS certificate expiry and missing security headers.
+// It stops early if ctx is cancelled or the timeout runs out.
+func Check(ctx context.Context, url string, timeout time.Duration) Result {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return Result{URL: url, Status: StatusDown, Err: err}
+	}
 
 	start := time.Now()
-	resp, err := client.Get(url)
+	resp, err := client.Do(req)
 	duration := time.Since(start)
 
 	if err != nil {

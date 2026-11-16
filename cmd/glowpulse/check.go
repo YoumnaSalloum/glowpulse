@@ -16,6 +16,7 @@ var (
 	jsonOutput bool
 	workers    int
 	filePath   string
+	timeout    time.Duration
 )
 
 var checkCmd = &cobra.Command{
@@ -39,7 +40,7 @@ var checkCmd = &cobra.Command{
 		}
 
 		start := time.Now()
-		results := pool.Run(urls, workers)
+		results := pool.Run(cmd.Context(), urls, workers, timeout)
 		elapsed := time.Since(start)
 
 		if jsonOutput {
@@ -50,6 +51,9 @@ var checkCmd = &cobra.Command{
 			for _, r := range results {
 				printText(r)
 				fmt.Println()
+			}
+			if cmd.Context().Err() != nil {
+				fmt.Println("⏹️  Stopped early: some sites were not checked")
 			}
 			printSummary(results, elapsed, workers)
 		}
@@ -67,5 +71,6 @@ func init() {
 	checkCmd.Flags().BoolVar(&jsonOutput, "json", false, "print the results as JSON")
 	checkCmd.Flags().IntVarP(&workers, "workers", "w", 10, "how many sites to check at the same time")
 	checkCmd.Flags().StringVarP(&filePath, "file", "f", "", "read URLs from a file, one per line")
+	checkCmd.Flags().DurationVarP(&timeout, "timeout", "t", 10*time.Second, "maximum time to wait for each site")
 	rootCmd.AddCommand(checkCmd)
 }
