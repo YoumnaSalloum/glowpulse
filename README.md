@@ -67,8 +67,8 @@ Checking the 11 sites in `examples/urls.txt` with a 3-second timeout on a MacBoo
 
 | Workers | Total time |
 |---|---|
-| 1 | FILL_IN_1 |
-| 11 | FILL_IN_11 |
+| 1 | 8.142s |
+| 11 | 3.001s |
 
 ```bash
 glowpulse check -f examples/urls.txt -t 3s -w 1
